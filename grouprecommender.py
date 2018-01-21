@@ -57,3 +57,27 @@ class GroupRecommender():
             playlist = None
         return playlist
 
+
+    def evaluate(self, users_indexes, track_indexes):
+        """
+        Based on the evaluation method proposed in
+        Collaborative Filtering for Implicit Feedback Datasets by Hu, Koren & Volinsky
+        to use recall-oriented features.
+
+        :return: rank
+        Lower values of rank are more desirable, as they indicate ranking actually watched shows closer to the top of
+        the rec- ommendation lists. Notice that for random predictions, the expected value of rankui is 50%
+        (placing i in the middle of the sorted list).
+        Thus, rank   50% indicates an algorithm no better than random.
+        """
+        length_recommendation = len(track_indexes)
+        numerator = 0
+        denominator = 0
+        for recommendation_index, a_track in enumerate(track_indexes):
+            for a_user in users_indexes:
+                r_iu = self.utility_matrix[a_track, a_user]
+                rank_iu = (recommendation_index / length_recommendation) * 100
+                numerator = numerator + (rank_iu * r_iu)  # accumulator
+                denominator = denominator + r_iu    # accumulator
+        rank = numerator / denominator
+        return rank

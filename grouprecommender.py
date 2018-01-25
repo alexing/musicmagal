@@ -12,16 +12,16 @@ from scipy import sparse
 
 class GroupRecommender():
     def __init__(self, utility_matrix, dataset, is_pickled=True):
-    """
-    :utility_matrix: scipy sparse matrix with tracks as rows and users as 
-    columns. Each entry shows how many times a track was listened by a user.
-    :is_pickled: flag telling if the utility matrix is the object itself or if 
-    it is the filepath to the pickled matrix.
-    :dataset: the original last.fm dataset.
-    
-    This function initializes the group recommender object by loading the 
-    utility matrix and training the ALS model with it.
-    """
+        """
+        :utility_matrix: scipy sparse matrix with tracks as rows and users as
+        columns. Each entry shows how many times a track was listened by a user.
+        :is_pickled: flag telling if the utility matrix is the object itself or if
+        it is the filepath to the pickled matrix.
+        :dataset: the original last.fm dataset.
+
+        This function initializes the group recommender object by loading the
+        utility matrix and training the ALS model with it.
+        """
         if is_pickled:
             with open(utility_matrix, 'rb') as pickle_file:
                 self.utility_matrix = pickle.loads(pickle_file.read())
@@ -34,16 +34,16 @@ class GroupRecommender():
     
     
     def recommend(self, users, max_recommendations, method='naive'):
-    """
-    :users: the user indices in the utility matrix for which the 
-    recommendations should be made.
-    :max_recommendations: the max amount of recommendations to be made for the 
-    group.
-    :method: The group recommendation method that should be applied.
-    
-    :return: a list of the indices of the rows of the utility matrix for the 
-    recommended tracks.
-    """
+        """
+        :users: the user indices in the utility matrix for which the
+        recommendations should be made.
+        :max_recommendations: the max amount of recommendations to be made for the
+        group.
+        :method: The group recommendation method that should be applied.
+
+        :return: a list of the indices of the rows of the utility matrix for the
+        recommended tracks.
+        """
         single_recommendations = []
         if method == 'naive':
             for user in users:
@@ -120,3 +120,12 @@ class GroupRecommender():
                 denominator = denominator + r_iu    # accumulator
         rank = numerator / denominator
         return rank
+
+
+    def get_songs(self):
+        '''
+        Returns a pandas series with track names and artist names.
+        Mostly for integration with last.fm api
+        :return:
+        '''
+        return self.dataset[['track_name','artist_name']]

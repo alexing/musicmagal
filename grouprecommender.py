@@ -12,16 +12,17 @@ from scipy import sparse
 
 class GroupRecommender():
     def __init__(self, utility_matrix, dataset, is_pickled=True):
-    """
-    :utility_matrix: scipy sparse matrix with tracks as rows and users as 
-    columns. Each entry shows how many times a track was listened by a user.
-    :is_pickled: flag telling if the utility matrix is the object itself or if 
-    it is the filepath to the pickled matrix.
-    :dataset: the original last.fm dataset.
-    
-    This function initializes the group recommender object by loading the 
-    utility matrix and training the ALS model with it.
-    """
+        """
+        :utility_matrix: scipy sparse matrix with tracks as rows and users as 
+        columns. Each entry shows how many times a track was listened by a 
+        user.
+        :is_pickled: flag telling if the utility matrix is the object itself or
+        if it is the filepath to the pickled matrix.
+        :dataset: the original last.fm dataset.
+        
+        This function initializes the group recommender object by loading the 
+        utility matrix and training the ALS model with it.
+        """
         if is_pickled:
             with open(utility_matrix, 'rb') as pickle_file:
                 self.utility_matrix = pickle.loads(pickle_file.read())
@@ -34,17 +35,18 @@ class GroupRecommender():
     
     
     def recommend(self, users, max_recommendations, method='naive'):
-    """
-    :users: the user indices in the utility matrix for which the 
-    recommendations should be made.
-    :max_recommendations: the max amount of recommendations to be made for the 
-    group.
-    :method: The group recommendation method that should be applied.
-    
-    :return: a list of the indices of the rows of the utility matrix for the 
-    recommended tracks.
-    """
+        """
+        :users: the user indices in the utility matrix for which the 
+        recommendations should be made.
+        :max_recommendations: the max amount of recommendations to be made for 
+        the group.
+        :method: The group recommendation method that should be applied.
+        
+        :return: a list of the indices of the rows of the utility matrix for 
+        the recommended tracks.
+        """
         single_recommendations = []
+        group_recommendations = []
         if method == 'naive':
             for user in users:
                 recommendations = self.algo.recommend(user,
@@ -60,7 +62,19 @@ class GroupRecommender():
                 )
             group_recommendations = list(group_recommendations)
         elif method == 'mean':
-            recommendation_vector = np.zeros()
+            recommendation_vector = np.zeros(self.num_of_tracks)
+            for user in users:
+                recommendation = self.algo.recommend(user, self.utility_matrix,
+                                                     self.num_of_tracks)
+                recommendation = [x[0] for x in recommendation]
+                recommendation += ([0] * (self.num_of_tracks - 
+                                   len(recommendation)))
+                recommendation_vector += recommendation
+                
+            recommendation_vector /= len(users)
+            group_recommendations = recommendation_vector.argsort() \
+                                    [-max_recommendations:][::-1]
+            
         else:
             print("Not yet implemented!")
             group_recommendations = None
@@ -82,7 +96,7 @@ class GroupRecommender():
         """
         users = np.where(np.in1d(self.dataset['user_id'].unique(), user_ids))[0]
         recommendations = self.recommend(users, max_recommendations, method)
-        if recommendations:
+        if np.array(recommendations).size > 0:
             recommended_track_ids = self.dataset['track_id'].unique() \
                                     [recommendations]
             playlist = []

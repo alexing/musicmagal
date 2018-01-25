@@ -45,6 +45,7 @@ class GroupRecommender():
         recommended tracks.
         """
         single_recommendations = []
+        group_recommendations = []
         if method == 'naive':
             for user in users:
                 recommendations = self.algo.recommend(user,
@@ -60,7 +61,19 @@ class GroupRecommender():
                 )
             group_recommendations = list(group_recommendations)
         elif method == 'mean':
-            recommendation_vector = np.zeros()
+            recommendation_vector = np.zeros(self.num_of_tracks)
+            for user in users:
+                recommendation = self.algo.recommend(user, self.utility_matrix,
+                                                     self.num_of_tracks)
+                recommendation = [x[0] for x in recommendation]
+                recommendation += ([0] * (self.num_of_tracks - 
+                                   len(recommendation)))
+                recommendation_vector += recommendation
+                
+            recommendation_vector /= len(users)
+            group_recommendations = recommendation_vector.argsort() \
+                                    [-max_recommendations:][::-1]
+            
         else:
             print("Not yet implemented!")
             group_recommendations = None
@@ -82,7 +95,7 @@ class GroupRecommender():
         """
         users = np.where(np.in1d(self.dataset['user_id'].unique(), user_ids))[0]
         recommendations = self.recommend(users, max_recommendations, method)
-        if recommendations:
+        if np.array(recommendations).size > 0:
             recommended_track_ids = self.dataset['track_id'].unique() \
                                     [recommendations]
             playlist = []

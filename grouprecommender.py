@@ -102,7 +102,7 @@ class GroupRecommender():
             for track in recommended_track_ids:
                 playlist.append(
                     self.dataset[self.dataset['track_id'] == track] \
-                    [['artist_name', 'track_name']].iloc[0, : ]
+                    [['artist_name', 'track_name', 'track_id']].iloc[0, : ]
                 )
         else:
             print("No songs found for this group.")

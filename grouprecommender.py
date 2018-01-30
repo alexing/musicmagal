@@ -7,7 +7,7 @@ import pickle
 import implicit
 import pandas as pd
 import numpy as np
-from scipy import sparse
+from scipy import sparse, spatial
 
 
 class GroupRecommender():
@@ -112,9 +112,8 @@ class GroupRecommender():
     
     def __cosine_sim__(self, user1, user2, alpha=1):
         """
-        Computes the cosine similarity between two users, that is, how similarity
-        their tastes are. The smaller the returned the value, the more similar
-        they are.
+        Computes the cosine similarity between two users, that is, how similar
+        their tastes are.
         
         :user1: column index of the first user to be compared
         :user2: column index of the second user to be compared
@@ -127,11 +126,11 @@ class GroupRecommender():
         mean1 = user1_array.mean()
         mean2 = user2_array.mean()
         
-        user1_array = mean1 * alpha * np.array([0 if x == 0 else 1 for x in
-                                                user1_array]).T
-        user2_array = mean2 * alpha * np.array([0 if y == 0 else 1 for y in
-                                                user2_array])
-        return np.sqrt(user1_array.dot(user2_array))
+        user1_array = np.array([0 if x == 0 else 1 for x in user1_array] + \
+                               [mean1 * alpha])
+        user2_array = np.array([0 if y == 0 else 1 for y in user2_array] + \
+                               [mean2 * alpha])
+        return 1 - spatial.distance.cosine(user1_array, user2_array)
         
         
     def evaluate(self, users_indexes, track_indexes):

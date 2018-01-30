@@ -180,7 +180,40 @@ class GroupRecommender():
                 denominator = denominator + r_iu    # accumulator
         rank = numerator / denominator
         return rank
+    
+    
+    def user_friendly_evaluation(self, user_indexes, track_indexes, top_n=10):
+        """
+        Shows if each track is in the user's top N recommendations and how many 
+        of them are in top N's overall.
         
+        :user_indexes: the users indexes for the users in the group
+        :track_indexes: the indexes of the tracks recommended for the group
+        :top_n: check if the recommendations are in the top N songs for each 
+        user
+        """
+        n_users = len(user_indexes)
+        n_tracks = len(track_indexes)
+        tracks_in_top_n = []
+        for track in track_indexes:
+            curr_total = 0.0
+            in_top_n = False
+            for user in user_indexes:
+                recs = self.algo.recommend(user,
+                                           self.utility_matrix,
+                                           top_n)
+                rec_tracks = [x[0] for x in recs]
+                if track in rec_tracks:
+                    curr_total += 1
+                    in_top_n = True
+            percentage_of_users = 100 * (curr_total / n_users)
+            print("Track " + str(track) + " is in " + str(percentage_of_users) \
+                  + "% of the user's top " + str(top_n) + " recommendations.")
+            tracks_in_top_n.append(in_top_n)
+        percentage_of_tracks = 100 * (sum(tracks_in_top_n) / n_tracks)
+        print("--------------------------")
+        print(str(percentage_of_tracks) + "% of recommended tracks are in" + \
+              " the users' top " + str(top_n) + ".")
         
     def get_songs(self):
         '''

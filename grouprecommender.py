@@ -8,6 +8,7 @@ import implicit
 import pandas as pd
 import numpy as np
 from scipy import sparse, spatial
+from operator import itemgetter
 
 
 class GroupRecommender():
@@ -60,19 +61,23 @@ class GroupRecommender():
                     recommendation
                 )
             group_recommendations = list(group_recommendations)
+        
         elif method == 'mean':
-            recommendation_vector = np.zeros(self.num_of_tracks)
+            score_dict = {}
             for user in users:
-                recommendation = self.algo.recommend(user, self.utility_matrix,
+                recommendation = self.algo.recommend(user,
+                                                     self.utility_matrix,
                                                      self.num_of_tracks)
-                recommendation = [x[0] for x in recommendation]
-                recommendation += ([0] * (self.num_of_tracks - 
-                                   len(recommendation)))
-                recommendation_vector += recommendation
+                for track, score in recommendation:
+                    if track in score_dict.keys():
+                        score_dict[track] += score
+                    else:
+                        score_dict[track] = score
                 
-            recommendation_vector /= len(users)
-            group_recommendations = recommendation_vector.argsort() \
-                                    [-max_recommendations:][::-1]
+            group_recommendations = sorted(score_dict.items(),
+                                           key=itemgetter(1),
+                                           reverse=True)[:max_recommendations]
+            group_recommendations = [x[0] for x in group_recommendations]
             
         else:
             print("Not yet implemented!")

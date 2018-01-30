@@ -131,6 +131,30 @@ class GroupRecommender():
         user2_array = np.array([0 if y == 0 else 1 for y in user2_array] + \
                                [mean2 * alpha])
         return 1 - spatial.distance.cosine(user1_array, user2_array)
+    
+
+    def avg_group_similarity(self, group_ids, alpha=1):
+        """
+        For each user in the group, this function will compute an array with 
+        the similarities between them and each of the other users and then it
+        computes the average similarity of the whole group.
+        
+        :group_ids: The user ids for which the average similarity is to be 
+        computed.
+        :alpha: Scaling factor
+        
+        :return: arrays of the similarities and the average similarity.
+        """
+        user_similarities = np.zeros(len(group_ids))
+        for user1 in group_ids:
+            curr_similarities = []
+            for user2 in group_ids:
+                similarity = self.__cosine_sim__(user1, user2)
+                curr_similarities.append(similarity)
+            user_similarities += np.array(curr_similarities)
+        user_similarities /= len(group_ids)
+        avg_similarity = np.mean(user_similarities)
+        return user_similarities, avg_similarity
         
         
     def evaluate(self, users_indexes, track_indexes):
@@ -156,8 +180,8 @@ class GroupRecommender():
                 denominator = denominator + r_iu    # accumulator
         rank = numerator / denominator
         return rank
-
-
+        
+        
     def get_songs(self):
         '''
         Returns a pandas series with track names and artist names.

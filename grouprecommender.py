@@ -12,25 +12,32 @@ from operator import itemgetter
 
 
 class GroupRecommender():
-    def __init__(self, utility_matrix, dataset, is_pickled=True):
+    def __init__(self, utility_matrix, dataset, pickled_model_path=None, 
+                 util_matrix_is_pickled=True):
         """
         :utility_matrix: scipy sparse matrix with tracks as rows and users as
         columns. Each entry shows how many times a track was listened by a user.
-        :is_pickled: flag telling if the utility matrix is the object itself or if
+        :dataset: The original dataset that generated the utility matrix.
+        :pickled_model_path: the path for the pickled model, if it exists
+        :util_matrix_is_pickled: flag telling if the utility matrix is the object itself or if
         it is the filepath to the pickled matrix.
         :dataset: the original last.fm dataset.
 
         This function initializes the group recommender object by loading the
         utility matrix and training the ALS model with it.
         """
-        if is_pickled:
+        if util_matrix_is_pickled:
             with open(utility_matrix, 'rb') as pickle_file:
                 self.utility_matrix = pickle.loads(pickle_file.read())
         else:
             self.utility_matrix = utility_matrix
         self.dataset = dataset
-        self.algo = implicit.als.AlternatingLeastSquares()
-        self.algo.fit(self.utility_matrix.astype(np.double))
+        if pickled_model_path:
+            with open(pickled_model_path, 'rb') as model_file:
+                self.algo = pickle.loads(model_file.read())
+        else:
+            self.algo = implicit.als.AlternatingLeastSquares()
+            self.algo.fit(self.utility_matrix.astype(np.double))
         self.num_of_tracks = self.utility_matrix.shape[0]
     
     

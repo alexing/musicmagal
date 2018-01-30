@@ -109,7 +109,31 @@ class GroupRecommender():
             playlist = None
         return playlist
 
-
+    
+    def __cosine_sim__(self, user1, user2, alpha=1):
+        """
+        Computes the cosine similarity between two users, that is, how similarity
+        their tastes are. The smaller the returned the value, the more similar
+        they are.
+        
+        :user1: column index of the first user to be compared
+        :user2: column index of the second user to be compared
+        :alpha: scaling factor
+        
+        :return: the similarity between the users.
+        """
+        user1_array = self.utility_matrix[:, user1].toarray()
+        user2_array = self.utility_matrix[:, user2].toarray()
+        mean1 = user1_array.mean()
+        mean2 = user2_array.mean()
+        
+        user1_array = mean1 * alpha * np.array([0 if x == 0 else 1 for x in
+                                                user1_array]).T
+        user2_array = mean2 * alpha * np.array([0 if y == 0 else 1 for y in
+                                                user2_array])
+        return np.sqrt(user1_array.dot(user2_array))
+        
+        
     def evaluate(self, users_indexes, track_indexes):
         """
         Based on the evaluation method proposed in

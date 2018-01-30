@@ -7,7 +7,7 @@ import pickle
 import implicit
 import pandas as pd
 import numpy as np
-from scipy import sparse
+from scipy import sparse, spatial
 
 
 class GroupRecommender():
@@ -109,7 +109,54 @@ class GroupRecommender():
             playlist = None
         return playlist
 
+    
+    def __cosine_sim__(self, user1, user2, alpha=1):
+        """
+        Computes the cosine similarity between two users, that is, how similar
+        their tastes are.
+        
+        :user1: column index of the first user to be compared
+        :user2: column index of the second user to be compared
+        :alpha: scaling factor
+        
+        :return: the similarity between the users.
+        """
+        user1_array = self.utility_matrix[:, user1].toarray()
+        user2_array = self.utility_matrix[:, user2].toarray()
+        mean1 = user1_array.mean()
+        mean2 = user2_array.mean()
+        
+        user1_array = np.array([0 if x == 0 else 1 for x in user1_array] + \
+                               [mean1 * alpha])
+        user2_array = np.array([0 if y == 0 else 1 for y in user2_array] + \
+                               [mean2 * alpha])
+        return 1 - spatial.distance.cosine(user1_array, user2_array)
+    
 
+    def avg_group_similarity(self, group_ids, alpha=1):
+        """
+        For each user in the group, this function will compute an array with 
+        the similarities between them and each of the other users and then it
+        computes the average similarity of the whole group.
+        
+        :group_ids: The user ids for which the average similarity is to be 
+        computed.
+        :alpha: Scaling factor
+        
+        :return: arrays of the similarities and the average similarity.
+        """
+        user_similarities = np.zeros(len(group_ids))
+        for user1 in group_ids:
+            curr_similarities = []
+            for user2 in group_ids:
+                similarity = self.__cosine_sim__(user1, user2)
+                curr_similarities.append(similarity)
+            user_similarities += np.array(curr_similarities)
+        user_similarities /= len(group_ids)
+        avg_similarity = np.mean(user_similarities)
+        return user_similarities, avg_similarity
+        
+        
     def evaluate(self, users_indexes, track_indexes):
         """
         Based on the evaluation method proposed in
@@ -133,8 +180,8 @@ class GroupRecommender():
                 denominator = denominator + r_iu    # accumulator
         rank = numerator / denominator
         return rank
-
-
+        
+        
     def get_songs(self):
         '''
         Returns a pandas series with track names and artist names.

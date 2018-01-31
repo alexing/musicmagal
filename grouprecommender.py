@@ -8,28 +8,36 @@ import implicit
 import pandas as pd
 import numpy as np
 from scipy import sparse, spatial
+from operator import itemgetter
 
 
 class GroupRecommender():
-    def __init__(self, utility_matrix, dataset, is_pickled=True):
+    def __init__(self, utility_matrix, dataset, pickled_model_path=None, 
+                 util_matrix_is_pickled=True):
         """
         :utility_matrix: scipy sparse matrix with tracks as rows and users as
         columns. Each entry shows how many times a track was listened by a user.
-        :is_pickled: flag telling if the utility matrix is the object itself or if
+        :dataset: The original dataset that generated the utility matrix.
+        :pickled_model_path: the path for the pickled model, if it exists
+        :util_matrix_is_pickled: flag telling if the utility matrix is the object itself or if
         it is the filepath to the pickled matrix.
         :dataset: the original last.fm dataset.
 
         This function initializes the group recommender object by loading the
         utility matrix and training the ALS model with it.
         """
-        if is_pickled:
+        if util_matrix_is_pickled:
             with open(utility_matrix, 'rb') as pickle_file:
                 self.utility_matrix = pickle.loads(pickle_file.read())
         else:
             self.utility_matrix = utility_matrix
         self.dataset = dataset
-        self.algo = implicit.als.AlternatingLeastSquares()
-        self.algo.fit(self.utility_matrix.astype(np.double))
+        if pickled_model_path:
+            with open(pickled_model_path, 'rb') as model_file:
+                self.algo = pickle.loads(model_file.read())
+        else:
+            self.algo = implicit.als.AlternatingLeastSquares()
+            self.algo.fit(self.utility_matrix.astype(np.double))
         self.num_of_tracks = self.utility_matrix.shape[0]
     
     
@@ -60,19 +68,23 @@ class GroupRecommender():
                     recommendation
                 )
             group_recommendations = list(group_recommendations)
+        
         elif method == 'mean':
-            recommendation_vector = np.zeros(self.num_of_tracks)
+            score_dict = {}
             for user in users:
-                recommendation = self.algo.recommend(user, self.utility_matrix,
+                recommendation = self.algo.recommend(user,
+                                                     self.utility_matrix,
                                                      self.num_of_tracks)
-                recommendation = [x[0] for x in recommendation]
-                recommendation += ([0] * (self.num_of_tracks - 
-                                   len(recommendation)))
-                recommendation_vector += recommendation
+                for track, score in recommendation:
+                    if track in score_dict.keys():
+                        score_dict[track] += score
+                    else:
+                        score_dict[track] = score
                 
-            recommendation_vector /= len(users)
-            group_recommendations = recommendation_vector.argsort() \
-                                    [-max_recommendations:][::-1]
+            group_recommendations = sorted(score_dict.items(),
+                                           key=itemgetter(1),
+                                           reverse=True)[:max_recommendations]
+            group_recommendations = [x[0] for x in group_recommendations]
             
         else:
             print("Not yet implemented!")
@@ -181,7 +193,40 @@ class GroupRecommender():
         print(numerator,denominator)
         rank = numerator / denominator
         return rank
+    
+    
+    def user_friendly_evaluation(self, user_indexes, track_indexes, top_n=10):
+        """
+        Shows if each track is in the user's top N recommendations and how many 
+        of them are in top N's overall.
         
+        :user_indexes: the users indexes for the users in the group
+        :track_indexes: the indexes of the tracks recommended for the group
+        :top_n: check if the recommendations are in the top N songs for each 
+        user
+        """
+        n_users = len(user_indexes)
+        n_tracks = len(track_indexes)
+        tracks_in_top_n = []
+        for track in track_indexes:
+            curr_total = 0.0
+            in_top_n = False
+            for user in user_indexes:
+                recs = self.algo.recommend(user,
+                                           self.utility_matrix,
+                                           top_n)
+                rec_tracks = [x[0] for x in recs]
+                if track in rec_tracks:
+                    curr_total += 1
+                    in_top_n = True
+            percentage_of_users = 100 * (curr_total / n_users)
+            print("Track " + str(track) + " is in " + str(percentage_of_users) \
+                  + "% of the user's top " + str(top_n) + " recommendations.")
+            tracks_in_top_n.append(in_top_n)
+        percentage_of_tracks = 100 * (sum(tracks_in_top_n) / n_tracks)
+        print("--------------------------")
+        print(str(percentage_of_tracks) + "% of recommended tracks are in" + \
+              " the users' top " + str(top_n) + ".")
         
     def get_songs(self):
         '''

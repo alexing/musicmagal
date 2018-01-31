@@ -178,6 +178,7 @@ class GroupRecommender():
                 rank_iu = (recommendation_index / length_recommendation) * 100
                 numerator = numerator + (rank_iu * r_iu)  # accumulator
                 denominator = denominator + r_iu    # accumulator
+        print(numerator,denominator)
         rank = numerator / denominator
         return rank
         

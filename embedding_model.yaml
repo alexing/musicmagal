@@ -1,0 +1,26 @@
+backend: tensorflow
+class_name: Sequential
+config:
+- class_name: InputLayer
+  config:
+    batch_input_shape: !!python/tuple [null, 1]
+    dtype: float32
+    name: input_3
+    sparse: false
+- class_name: Embedding
+  config:
+    activity_regularizer: null
+    batch_input_shape: !!python/tuple [null, 1]
+    dtype: float32
+    embeddings_constraint: null
+    embeddings_initializer:
+      class_name: RandomUniform
+      config: {maxval: 0.05, minval: -0.05, seed: null}
+    embeddings_regularizer: null
+    input_dim: 10000
+    input_length: 1
+    mask_zero: false
+    name: embedding
+    output_dim: 300
+    trainable: true
+keras_version: 2.1.2

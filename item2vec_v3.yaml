@@ -1,0 +1,133 @@
+backend: tensorflow
+class_name: Model
+config:
+  input_layers:
+  - [input_3, 0, 0]
+  - [input_4, 0, 0]
+  layers:
+  - class_name: InputLayer
+    config:
+      batch_input_shape: !!python/tuple [null, 1]
+      dtype: float32
+      name: input_3
+      sparse: false
+    inbound_nodes: []
+    name: input_3
+  - class_name: InputLayer
+    config:
+      batch_input_shape: !!python/tuple [null, 1]
+      dtype: float32
+      name: input_4
+      sparse: false
+    inbound_nodes: []
+    name: input_4
+  - class_name: Embedding
+    config:
+      activity_regularizer: null
+      batch_input_shape: !!python/tuple [null, 1]
+      dtype: float32
+      embeddings_constraint: null
+      embeddings_initializer:
+        class_name: RandomUniform
+        config: {maxval: 0.05, minval: -0.05, seed: null}
+      embeddings_regularizer: null
+      input_dim: 10000
+      input_length: 1
+      mask_zero: false
+      name: embedding
+      output_dim: 300
+      trainable: true
+    inbound_nodes:
+    - - - input_3
+        - 0
+        - 0
+        - {}
+    - - - input_4
+        - 0
+        - 0
+        - {}
+    name: embedding
+  - class_name: Reshape
+    config:
+      name: reshape_4
+      target_shape: !!python/tuple [300, 1]
+      trainable: true
+    inbound_nodes:
+    - - - embedding
+        - 0
+        - 0
+        - {}
+    name: reshape_4
+  - class_name: Reshape
+    config:
+      name: reshape_5
+      target_shape: !!python/tuple [300, 1]
+      trainable: true
+    inbound_nodes:
+    - - - embedding
+        - 1
+        - 0
+        - {}
+    name: reshape_5
+  - class_name: Merge
+    config:
+      arguments: {}
+      concat_axis: -1
+      dot_axes: [1, 1]
+      mode: dot
+      mode_type: raw
+      name: merge_4
+      output_mask: null
+      output_mask_type: raw
+      output_shape: null
+      output_shape_type: raw
+    inbound_nodes:
+    - - - reshape_4
+        - 0
+        - 0
+        - &id001
+          mask: [null, null]
+      - - reshape_5
+        - 0
+        - 0
+        - *id001
+    name: merge_4
+  - class_name: Reshape
+    config:
+      name: reshape_6
+      target_shape: !!python/tuple [1]
+      trainable: true
+    inbound_nodes:
+    - - - merge_4
+        - 0
+        - 0
+        - {}
+    name: reshape_6
+  - class_name: Dense
+    config:
+      activation: sigmoid
+      activity_regularizer: null
+      bias_constraint: null
+      bias_initializer:
+        class_name: Zeros
+        config: {}
+      bias_regularizer: null
+      kernel_constraint: null
+      kernel_initializer:
+        class_name: VarianceScaling
+        config: {distribution: uniform, mode: fan_avg, scale: 1.0, seed: null}
+      kernel_regularizer: null
+      name: dense_2
+      trainable: true
+      units: 1
+      use_bias: true
+    inbound_nodes:
+    - - - reshape_6
+        - 0
+        - 0
+        - {}
+    name: dense_2
+  name: model_3
+  output_layers:
+  - [dense_2, 0, 0]
+keras_version: 2.1.2

@@ -169,11 +169,15 @@ class GroupRecommender():
         return user_similarities, avg_similarity
         
         
-    def evaluate(self, users_indexes, track_indexes):
+    def evaluate(self, users_indexes, track_indexes, method='recall'):
         """
-        Based on the evaluation method proposed in
+        Recall-oriented method based on the evaluation method proposed in
         Collaborative Filtering for Implicit Feedback Datasets by Hu, Koren & Volinsky
         to use recall-oriented features.
+        source: yifanhu.net/PUB/cf.pdf
+
+        Custom method created by ponderating the recall with a custom S measure which
+        takes into account how dissimilate each user is to each other.
 
         :return: rank
         Lower values of rank are more desirable, as they indicate ranking actually watched shows closer to the top of
@@ -190,10 +194,19 @@ class GroupRecommender():
                 rank_iu = (recommendation_index / length_recommendation) * 100
                 numerator = numerator + (rank_iu * r_iu)  # accumulator
                 denominator = denominator + r_iu    # accumulator
-        print(numerator,denominator)
         rank = numerator / denominator
-        return rank
-    
+        if method == 'recall':
+            return rank
+        if method == 'custom':
+            group_similarities, average_similarity = self.avg_group_similarity(users_indexes)
+            rank_u = 0
+            for a_group_similarity in group_similarities:
+                rank_u += rank * a_group_similarity
+            return (rank_u / len(group_similarities)), average_similarity
+
+        else:
+            raise Exception("Invalid method")
+
     
     def user_friendly_evaluation(self, user_indexes, track_indexes, top_n=10):
         """

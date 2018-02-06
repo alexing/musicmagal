@@ -9,11 +9,15 @@ import pandas as pd
 import numpy as np
 from scipy import sparse, spatial
 from operator import itemgetter
+from keras.models import model_from_yaml
+from sklearn.neighbors import NearestNeighbors
 
 
 class GroupRecommender():
     def __init__(self, utility_matrix, dataset, pickled_model_path=None, 
-                 util_matrix_is_pickled=True):
+                 util_matrix_is_pickled=True, embedding_model_path=None,
+                 model_weights_path=None, embedding_space_path=None,
+                 dicts_path=None):
         """
         :utility_matrix: scipy sparse matrix with tracks as rows and users as
         columns. Each entry shows how many times a track was listened by a user.
@@ -22,6 +26,12 @@ class GroupRecommender():
         :util_matrix_is_pickled: flag telling if the utility matrix is the object itself or if
         it is the filepath to the pickled matrix.
         :dataset: the original last.fm dataset.
+        :embedding_model_path: Path to the keras item2vec embedding model
+        :model_weights_path: path to the model's weights
+        :embedding_space_path: path to the song embedding space
+        :dicts_path: path to the dictionaries to translate from song ids to 
+        integers representing one-hot vectors, inputs to the embedding model.
+        
 
         This function initializes the group recommender object by loading the
         utility matrix and training the ALS model with it.
@@ -38,6 +48,18 @@ class GroupRecommender():
         else:
             self.algo = implicit.als.AlternatingLeastSquares()
             self.algo.fit(self.utility_matrix.astype(np.double))
+        if embedding_model_path:
+            with open(embedding_model_path, 'r') as model_file:
+                model_yaml = model_file.read()
+            self.embedding_model = model_from_yaml(model_yaml)
+            self.embedding_model.load_weights(model_weights_path)
+        if embedding_space_path:
+            self.embedding_space = np.load(embedding_space_path)
+        if dicts_path:
+            with open(dicts_path, 'rb') as dicts_file:
+                self.song_dict, self.reverse_dict = pickle.loads(
+                    dicts_file.read()
+                )
         self.num_of_tracks = self.utility_matrix.shape[0]
     
     
@@ -90,6 +112,38 @@ class GroupRecommender():
             print("Not yet implemented!")
             group_recommendations = None
         
+        return group_recommendations
+    
+    
+    def item2vec_recommendation(self, users, max_recommendations):
+        """
+        :users: list with user numbers (columns from the utility matrix)
+        :max_recommendations: number of recommendations to make
+        
+        :return: list of song ids
+        """
+        #First, recommend the best song for each user using ALS
+        first_recommendations = []
+        for user in users:
+            recommendation = self.algo.recommend(user,
+                                                 self.utility_matrix,
+                                                 1)
+            song_id = self.dataset['track_id'].unique()[recommendation[0][0]]
+            first_recommendations.append(song_id)
+        #Map the recommendations to the embedding space
+        mapped_first_recommendations = np.array([self.dict[x] for x in 
+                                                 first_recommendations])
+        embedded_first_recommendations = self.embedding_model.predict_on_batch(
+                                         mapped_first_recommendations)
+        #Get the median song vector to represent the taste of the group
+        median_recommendation = np.median(embedded_first_recommendations, axis=0)
+        
+        #Use KNN to find similar songs
+        knn = NearestNeighbors(n_neighbors=max_recommendations + 1)
+        knn.fit(self.embedding_space)
+        _, group_recommendations = knn.kneighbors(median_recommendation)
+        group_recommendations = [self.reverse_dict[x] for x in group_recommendations]
+        return group_recommendations
         return group_recommendations
     
     

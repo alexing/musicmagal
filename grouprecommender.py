@@ -131,8 +131,9 @@ class GroupRecommender():
             song_id = self.dataset['track_id'].unique()[recommendation[0][0]]
             first_recommendations.append(song_id)
         #Map the recommendations to the embedding space
-        mapped_first_recommendations = np.array([self.dict[x] for x in 
-                                                 first_recommendations])
+        mapped_first_recommendations = np.array([self.song_dict[x] for x in 
+                                                 first_recommendations
+                                                 if x in self.song_dict.keys()])
         embedded_first_recommendations = self.embedding_model.predict_on_batch(
                                          mapped_first_recommendations)
         #Get the median song vector to represent the taste of the group
@@ -141,9 +142,9 @@ class GroupRecommender():
         #Use KNN to find similar songs
         knn = NearestNeighbors(n_neighbors=max_recommendations + 1)
         knn.fit(self.embedding_space)
-        _, group_recommendations = knn.kneighbors(median_recommendation)
+        _, neighbors = knn.kneighbors(median_recommendation)
+        group_recommendations = neighbors[0]
         group_recommendations = [self.reverse_dict[x] for x in group_recommendations]
-        return group_recommendations
         return group_recommendations
     
     
@@ -160,19 +161,22 @@ class GroupRecommender():
         recommended tracks for the group.
         """
         users = np.where(np.in1d(self.dataset['user_id'].unique(), user_ids))[0]
-        recommendations = self.recommend(users, max_recommendations, method)
-        if np.array(recommendations).size > 0:
-            recommended_track_ids = self.dataset['track_id'].unique() \
-                                    [recommendations]
-            playlist = []
-            for track in recommended_track_ids:
-                playlist.append(
-                    self.dataset[self.dataset['track_id'] == track] \
-                    [['artist_name', 'track_name', 'track_id']].iloc[0, : ]
-                )
+        if method == 'item2vec':
+            recommended_track_ids = self.item2vec_recommendation(users, max_recommendations)
         else:
-            print("No songs found for this group.")
-            playlist = None
+            recommendations = self.recommend(users, max_recommendations, method)
+            if np.array(recommendations).size > 0:
+                recommended_track_ids = self.dataset['track_id'].unique() \
+                                        [recommendations]
+            else:
+                print("No songs found for this group.")
+                return None
+        playlist = []
+        for track in recommended_track_ids:
+            playlist.append(
+                self.dataset[self.dataset['track_id'] == track] \
+                [['artist_name', 'track_name', 'track_id']].iloc[0, : ]
+            )
         return playlist
 
     

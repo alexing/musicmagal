@@ -1,0 +1,5 @@
+merge diapo 3 with 2
+make dataset part smaller
+emphasize use of papers!!!! (references)
+start with the metric (how does a single user system is different from a group)
+numbers at the end

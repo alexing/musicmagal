@@ -2,6 +2,7 @@
 lastfm_data/
 *data/
 recommender.pickle
+model.pickle
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

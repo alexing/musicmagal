@@ -253,10 +253,11 @@ class GroupRecommender():
                 numerator = numerator + (rank_iu * r_iu)  # accumulator
                 denominator = denominator + r_iu    # accumulator
         rank = numerator / denominator
+        group_similarities, average_similarity = self.avg_group_similarity(users_indexes)
+
         if method == 'recall':
-            return rank
+            return rank, average_similarity
         if method == 'custom':
-            group_similarities, average_similarity = self.avg_group_similarity(users_indexes)
             rank_u = 0
             for a_group_similarity in group_similarities:
                 rank_u += rank * a_group_similarity

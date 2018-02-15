@@ -22,14 +22,14 @@ You can read the article going over our model bit by bit in [my Medium account](
 
 ### References:
 
-[1] Mezei, Zsolt, and Carsten Eickhoff. ["Evaluating Music Recommender Systems for Groups."](papers/Evaluating\ Music\ Recommender\ Systems\ for\ Groups.pdf) arXiv preprint arXiv:1707.09790 (2017).
+[1] Mezei, Zsolt, and Carsten Eickhoff. ["Evaluating Music Recommender Systems for Groups."](papers/Evaluating_Music_Recommender_Systems_for_Groups.pdf) arXiv preprint arXiv:1707.09790 (2017).
 
-[2] Yoshii, Kazuyoshi, et al. ["Hybrid Collaborative and Content-based Music Recommendation Using Probabilistic Model with Latent User Preferences."](papers/Hybrid\ Collaborative\ and\ Content-based\ Music\ Recommendation.pdf) ISMIR. Vol. 6. 2006.
+[2] Yoshii, Kazuyoshi, et al. ["Hybrid Collaborative and Content-based Music Recommendation Using Probabilistic Model with Latent User Preferences."](papers/Hybrid_Collaborative_and_Content-based_Music_Recommendation.pdf) ISMIR. Vol. 6. 2006.
 
-[3] Parra, Denis, et al. ["Implicit feedback recommendation via implicit-to-explicit ordinal logistic regression mapping."](papers/Implicit\ Feedback\ Recommendation.pdf) Proceedings of the CARS-2011 (2011).
+[3] Parra, Denis, et al. ["Implicit feedback recommendation via implicit-to-explicit ordinal logistic regression mapping."](papers/Implicit_Feedback_Recommendation.pdf) Proceedings of the CARS-2011 (2011).
 
 [4] Hu, Yifan, Yehuda Koren, and Chris Volinsky. ["Collaborative filtering for implicit feedback datasets."](papers/cf-hkmethod.pdf) Data Mining, 2008. ICDM'08. Eighth IEEE International Conference on. Ieee, 2008.
 
 [5] Barkan, Oren, and Noam Koenigstein. ["Item2vec: neural item embedding for collaborative filtering."](papers/item2vec.pdf) Machine Learning for Signal Processing (MLSP), 2016 IEEE 26th International Workshop on. IEEE, 2016.
 
-[6] Leskovec, Jure, Anand Rajaraman, and Jeffrey David Ullman. ['Mining of massive datasets.'](papers/Recommendation\ Systems.pdf) Cambridge university press, 2014.
+[6] Leskovec, Jure, Anand Rajaraman, and Jeffrey David Ullman. ['Mining of massive datasets.'](papers/Recommendation_Systems.pdf) Cambridge university press, 2014.

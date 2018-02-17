@@ -16,7 +16,7 @@ To see our evaluation metrics you can check [musicmagal_evaluation.ipynb](musicm
 
 Our database exploration is presented in [db_exploration.ipynb](db_exploration.ipynb).
 
-You can read the article going over our model bit by bit in [my Medium account](https://medium.com/p/c93e9dabd01a/edit).
+You can read the article going over our model bit by bit in [Hacker Noon](https://hackernoon.com/musicmagal-c93e9dabd01a).
 
 
 
